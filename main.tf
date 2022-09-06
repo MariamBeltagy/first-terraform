@@ -13,8 +13,8 @@ provider "azurerm" {
 }
 
 # Create a resource group
-resource "azurerm_resource_group" "tf_test" {
-  name     = "rg1"
+resource "azurerm_resource_group" "tf_test2" {
+  name     = "rg2"
   location = "centralus"
 }
 
