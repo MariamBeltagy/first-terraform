@@ -27,6 +27,23 @@ module "blob_st" {
   blob_source             = "testfile"
   depends_on              = [azurerm_resource_group.tf_test]
 }
+
+module "app_service" {
+  source                  = "./modules/app_service"
+  resource_group_name     = azurerm_resource_group.tf_test.name
+  app_service_plan_name   = "appservicepaln1"
+  app_service_name        = "appservice1"
+  app_Service_slot_name   = "slottest1"
+  depends_on              = [azurerm_resource_group.tf_test]
+}
+ #swap between prod and staging slot
+resource "azurerm_app_service_active_slot" "slotDemoActiveSlot" {
+    resource_group_name   = azurerm_resource_group.tf_test.name
+    app_service_name      = module.app_service.app_service_name
+    app_service_slot_name = module.app_service.app_service_slot_name
+    depends_on            = [module.app_service]
+}
+
 # module "vnet" {
 #   source              = "Azure/vnet/azurerm"
 #   resource_group_name = azurerm_resource_group.tf_test.name
