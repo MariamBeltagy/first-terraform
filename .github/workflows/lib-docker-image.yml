@@ -1,0 +1,62 @@
+---
+name: Lib - Create and Publish Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      ARTIFACT_NAME:
+        required: true
+        type: string
+        description: "Artifact name"
+      APP_IMAGE_NAME:
+        required: true
+        type: string
+        description: "App docker image name"
+      APP_IMAGE_VERSION:
+        required: true
+        type: string
+        description: "App docker image version"
+
+    secrets:
+      REGISTRY_SERVER_NAME:
+        required: true
+        description: "Registry server name"
+      REGISTRY_REPO_NAME:
+        required: true
+        description: "Registry repo name"
+      REGISTRY_USER_NAME:
+        required: true
+        description: "Registry user name"
+      REGISTRY_USER_PASSWORD:
+        required: true
+        description: "Registry user password"
+
+jobs:
+  docker:
+    name: Create & Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{inputs.ARTIFACT_NAME}}
+
+      - name: Login to Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_SERVER_NAME }}
+          username: ${{ secrets.REGISTRY_USER_NAME }}
+          password: ${{ secrets.REGISTRY_USER_PASSWORD }}
+
+      - name: Build & Push Docker Image
+        run: |
+          docker build --pull --no-cache . -t ${{ secrets.REGISTRY_SERVER_NAME }}/${{ secrets.REGISTRY_REPO_NAME }}/${{ inputs.APP_IMAGE_NAME }}:${{ inputs.APP_IMAGE_VERSION }}
+          docker push ${{ secrets.REGISTRY_SERVER_NAME }}/${{ secrets.REGISTRY_REPO_NAME }}/${{ inputs.APP_IMAGE_NAME }}:${{ inputs.APP_IMAGE_VERSION }}
+
+      # - name: Build and Push Docker image
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: ${{ secrets.REGISTRY_SERVER_NAME }}/${{ secrets.REGISTRY_REPO_NAME }}/${{ inputs.APP_IMAGE_NAME }}:latest, ${{ secrets.REGISTRY_SERVER_NAME }}/${{ secrets.REGISTRY_REPO_NAME }}/${{ inputs.APP_IMAGE_NAME }}:${{ inputs.APP_IMAGE_VERSION }}
